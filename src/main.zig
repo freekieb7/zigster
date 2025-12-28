@@ -1,7 +1,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const zigster = @import("./root.zig");
-const http = @import("./http.zig");
+const http = @import("http/http.zig");
 const telemetry = @import("./telemetry.zig");
 
 pub fn main() !void {
@@ -18,13 +18,16 @@ pub fn main() !void {
     var stdout = std.fs.File.Writer.init(std.fs.File.stdout(), &buffer);
 
     var logger: telemetry.Logger = .init(&stdout.interface);
-    try logger.info("Starting zigster server...\n");
+    const address: []const u8 = "127.0.0.1:8080";
+
+    try logger.info("Starting zigster server...", .{ "address", address });
+    try logger.info("Starting zigster server...2", .{ "address", address });
 
     var threaded: std.Io.Threaded = .init(allocator);
     defer threaded.deinit();
 
-    var server = http.server{};
-    try server.listenAndServe(threaded.io(), "127.0.0.1:8080");
+    var server: http.Server = try .init(allocator);
+    try server.listenAndServe(threaded.io(), address);
 }
 
 // test "simple test" {
